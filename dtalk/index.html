@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>トーク・テスト</title>
+
+<style type="text/css">
+<!--
+
+-->
+</style>
+
+  </head>
+
+  <body id="chat" class="container-fluid"><a name="pagetop"></a>
+
+<!-- ヘッダー -->
+
+<header class="row">
+
+  <div class="col-12 pt-3 pb-2"><b style="font-size: 1.5rem;">トーク・テスト</b>　Python3.7.4 mecab-python3-0.996.2</div>
+
+</header>
+
+<!-- メイン -->
+<main>
+
+<div class="row px-3">
+<div id="history" class="col-12">
+
+
+</div>
+</div>
+
+<div id="guide" class="row px-3">
+<div class="col-12">
+何か文章を入力してください。
+</div>
+</div>
+
+<div class="d-flex w-100 py-2 align-items-center">
+<textarea id="honbun" rows="1" style="width: 100%;"></textarea>
+<button id="decide" type="button" class="btn-danger btn-block p-2 rounded" style="margin-left: 3px; width: 120px; height: 50px;">送信</button>
+</div>
+
+</main>
+
+<!-- フッター -->
+<footer>
+
+</footer>
+
+<!-- ダイアログ -->
+<div class="modal" data-backdrop="static" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog  modal-dialog-centered" role="document">
+    <div class="modal-content d-flex justify-content-center align-items-center mb-5 mx-3" style="background: #ffffff;">
+      <div class="modal-body p-1 m-0">
+        <div class="d-flex justify-content-center align-items-center p-2">
+          <div id="modal_text" style="color: #43434A;"></div>
+        </div>
+        <div id="modal_close" class="d-flex justify-content-center align-items-center p-2">
+          <div style="color: #FF703A;"><b>ＯＫ</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<!--
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<!-- スクリプト -->
+<script>//<![CDATA[
+
+function escape_html (string) {
+  if(typeof string !== 'string') {
+    return string;
+  }
+  return string.replace(/[&'`"<>]/g, function(match) {
+    return {
+      '&': '&amp;',
+      "'": '&#x27;',
+      '`': '&#x60;',
+      '"': '&quot;',
+      '<': '&lt;',
+      '>': '&gt;',
+    }[match]
+  });
+}
+
+	function adjustTextArea(textarea) {
+		var lineHeight = parseInt(textarea.css('lineHeight'));
+    	var lines = (textarea.val() + '\n').match(/\n/g).length;
+		if( lines < 2 ) lines = 2;
+    	textarea.height(lineHeight * lines);
+	}
+
+	$(window).on('pageshow',function(){
+		$('#modal').modal('hide');
+			adjustTextArea( $('#honbun') );
+	  });
+
+  $('#honbun').on('input', function(e) {
+	adjustTextArea( $(this) );
+  });
+
+	$('#decide').on('click', function() {
+
+		var honbun = $('#honbun').val();
+		if( honbun.length <= 0 ) return;
+		honbun = honbun.trim();
+		if( honbun.length <= 0 ){
+			$('#honbun').val("");
+			return;
+		}
+		honbun = honbun.replace(/\r\n/g,'\n');
+		var disp_honbun = escape_html(honbun);
+		disp_honbun = disp_honbun.replace(/\n/g,'<br>');
+
+		$('#guide').html("");
+
+		var history = $('#history').html();
+		history +=
+		'<div class="row py-2">' +
+		'<div class="col-6"></div>' +
+		'<div class="col-6 rounded" style="border: 1px solid #ff0000;">' +
+		disp_honbun +
+		'</div>' +
+		'</div>';
+		$('#history').html(history);
+
+		$('#honbun').val("");
+		adjustTextArea( $('#honbun') );
+
+		$(window).scrollTop($('#decide').offset().top);
+
+		var query = 'honbun=' + encodeURIComponent(honbun);
+
+		// Assign handlers immediately after making the request,
+		// and remember the jqxhr object for this request
+		var jqxhr = $.post( "dtalk.cgi", query, function() {
+		//  alert( "success" );
+		})
+		.done(function( data ) {
+		//    alert( "second success" );
+		//    console.log(data);
+
+			history = $('#history').html();
+			history +=
+			'<div class="row py-2">' +
+			'<div class="col-6 rounded" style="border: 1px solid #0000ff;">' +
+			data +
+			'</div>' +
+			'<div class="col-6"></div>' +
+			'</div>';
+			$('#history').html(history);
+
+		$(window).scrollTop($('#decide').offset().top);
+
+		  })
+		  .fail(function() {
+		//    alert( "error" );
+		  })
+		  .always(function() {
+		//    alert( "finished" );
+		});
+
+		// Perform other work here ...
+
+		// Set another completion function for the request above
+		jqxhr.always(function() {
+		//  alert( "second finished" );
+		});
+	});
+
+	$('#modal_close').on('click', function() {
+		$('#modal').modal('hide');
+	});
+
+//]]></script>
+
+  </body>
+</html>
